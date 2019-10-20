@@ -95,8 +95,8 @@ public abstract class AbstractGenerator
     protected virtual void GenerateTileAndUpdateNextPos()
     {
         var tile = GenerateTile( _width, _subTilePrefab, TileOnCollisionExitEvent );
-        //_diamondGenerator.ProcessTiles( tile.GetSubTilesTransform() );
-        _diamondGenerator.ProcessTiles( new[] {tile.transform} );
+        _diamondGenerator.ProcessTiles( tile.GetSubTilesTransform() ); // генерация с учетом всех саб-тайлов
+        //_diamondGenerator.ProcessTiles( new[] {tile.transform} ); // генерация только на самих тайлах
         UpdateNextPos();
     }
 

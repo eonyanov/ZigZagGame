@@ -157,7 +157,7 @@ MonoBehaviour:
   _randomDiamondGeneration: 0
   _startPlatformWidth: 3
   _gameSettings: {fileID: 11400000, guid: 46378df452ea18549bf18b86396b6d74, type: 2}
-  _gameDifficulty: 0
+  _gameDifficulty: 2
 --- !u!4 &73337000
 Transform:
   m_ObjectHideFlags: 0
