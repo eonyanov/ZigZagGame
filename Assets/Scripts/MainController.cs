@@ -16,12 +16,12 @@ public class MainController : MonoBehaviour
     [SerializeField] private GameSettings.Difficulty _gameDifficulty = GameSettings.Difficulty.Easy;
 
 
-    public event Action<GameState> GameStateChaged = state => { };
-
     public AbstractScoreSystem ScoreSystem { get; private set; }
-    public Ball Ball { get; private set; }
 
-    public GameState GameState { get; private set; }
+
+    private GameState _gameState;
+
+    private Ball _player;
     private AbstractGenerator _generator;
 
     private GameSettings.DifficultyParams _difficultyParams;
@@ -37,6 +37,29 @@ public class MainController : MonoBehaviour
 
         Instance = this;
         DontDestroyOnLoad( gameObject );
+
+        EventPublisher.Instance.Subscribe<GameStateRequestChangeEvent>( OnRequestChangeGameState );
+    }
+
+
+    void OnDisable()
+    {
+        EventPublisher.Instance.Unsubscribe<GameStateRequestChangeEvent>( OnRequestChangeGameState );
+    }
+
+
+    private void OnRequestChangeGameState( GameStateRequestChangeEvent e )
+    {
+        switch ( e.NewGameState )
+        {
+            case GameState.Menu:
+                break;
+            case GameState.Playing:
+                StartGame();
+                break;
+            case GameState.GameOver:
+                break;
+        }
     }
 
 
@@ -57,14 +80,14 @@ public class MainController : MonoBehaviour
 
     public void StartGame()
     {
-        if ( Ball != null )
-            Destroy( Ball.gameObject );
+        if ( _player != null )
+            Destroy( _player.gameObject );
 
         CreateBall( _difficultyParams.PlayerSpeed );
 
-        Ball.transform.position = _generator.Generate( _difficultyParams.PathWidth );
+        _player.transform.position = _generator.Generate( _difficultyParams.PathWidth );
 
-        ScoreSystem = new DiamondScoreSystem( Ball );
+        ScoreSystem = new DiamondScoreSystem( _player );
 
         SetGameState( GameState.Playing );
     }
@@ -72,14 +95,14 @@ public class MainController : MonoBehaviour
 
     private void SetGameState( GameState gameState )
     {
-        GameState = gameState;
-        GameStateChaged?.Invoke( GameState );
+        _gameState = gameState;
+        EventPublisher.Instance.Publish( new GameStateChangedEvent( _gameState ) );
     }
 
 
     private void BallOnDie()
     {
-        Destroy( Ball.gameObject );
+        Destroy( _player.gameObject );
 
         SetGameState( GameState.GameOver );
     }
@@ -87,9 +110,11 @@ public class MainController : MonoBehaviour
 
     private void CreateBall( float speed )
     {
-        Ball = Instantiate( _ballPrefab );
-        Ball.Speed = speed;
-        Ball.Die += BallOnDie;
+        _player = Instantiate( _ballPrefab );
+        _player.Speed = speed;
+        _player.Die += BallOnDie;
+
+        EventPublisher.Instance.Publish( new PlayerCreaterEvent( _player ) );
     }
 
 

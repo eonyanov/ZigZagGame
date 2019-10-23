@@ -10,23 +10,28 @@ public class UI : MonoBehaviour
     private GameState _gameState;
 
 
-    private void Start()
+    void OnEnable()
     {
-        MainController.Instance.GameStateChaged += OnGameStateChaged;
-        OnGameStateChaged( MainController.Instance.GameState );
+        EventPublisher.Instance.Subscribe<GameStateChangedEvent>( OnGameStateChaged );
     }
 
 
-    public void OnStartBtnClick( )
+    void OnDisable()
     {
-        MainController.Instance.StartGame(  );
+        EventPublisher.Instance.Unsubscribe<GameStateChangedEvent>( OnGameStateChaged );
     }
 
 
-    private void OnGameStateChaged( GameState gameState )
+    public void OnStartBtnClick()
     {
-        _gameState = gameState;
-        switch ( gameState )
+        EventPublisher.Instance.Publish( new GameStateRequestChangeEvent( GameState.Playing ) );
+    }
+
+
+    private void OnGameStateChaged( GameStateChangedEvent e )
+    {
+        _gameState = e.GameState;
+        switch ( _gameState )
         {
             case GameState.Menu:
                 _startButton.gameObject.SetActive( true );
@@ -49,13 +54,7 @@ public class UI : MonoBehaviour
 
     private void Update()
     {
-        if ( _gameState == GameState.Playing )
+        if ( _gameState == GameState.Playing && MainController.Instance != null)
             _score.text = MainController.Instance.ScoreSystem.Score.ToString();
-    }
-
-
-    private void OnDestroy()
-    {
-        MainController.Instance.GameStateChaged -= OnGameStateChaged;
     }
 }

@@ -7,27 +7,21 @@ public class CameraController : MonoBehaviour
     private CinemachineVirtualCamera _camera;
 
 
-    // Start is called before the first frame update
-    void Start()
+    void OnEnable()
     {
-        _camera = GetComponent<CinemachineVirtualCamera>();
-        MainController.Instance.GameStateChaged += OnGameStateChaged;
+        EventPublisher.Instance.Subscribe<PlayerCreaterEvent>( OnPlayerCreated );
     }
 
 
-    private void OnGameStateChaged( GameState gameState )
+    void OnDisable()
     {
-        switch ( gameState )
-        {
-            case GameState.Menu:
-                break;
-            case GameState.Playing:
-                SetTarget( MainController.Instance.Ball.transform );
-                break;
-            case GameState.GameOver:
-                SetTarget( null );
-                break;
-        }
+        EventPublisher.Instance.Unsubscribe<PlayerCreaterEvent>( OnPlayerCreated );
+    }
+
+
+    private void OnPlayerCreated( PlayerCreaterEvent e )
+    {
+        SetTarget( e.Player.transform );
     }
 
 
@@ -39,12 +33,9 @@ public class CameraController : MonoBehaviour
 
     public void SetTarget( Transform target )
     {
+        if ( _camera == null )
+            _camera = GetComponent<CinemachineVirtualCamera>();
+
         _camera.Follow = target;
-    }
-
-
-    void OnDestroy()
-    {
-        MainController.Instance.GameStateChaged += OnGameStateChaged;
     }
 }
