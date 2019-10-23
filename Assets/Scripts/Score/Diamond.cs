@@ -10,4 +10,11 @@ public class Diamond : MonoBehaviour, IPickUpable
         Instantiate( _particles, transform.position, transform.rotation );
         Destroy( gameObject );
     }
+
+
+    void OnDisable()
+    {
+        Destroy( gameObject );
+    }
+
 }
